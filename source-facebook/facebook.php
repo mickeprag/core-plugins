@@ -97,11 +97,18 @@ class FacebookPlugin extends Plugin {
 		}
 		$first = array_shift($responses);
 		$config = $this->getConfig();
+		$message = $first->getField('message');
+		if (strlen($message) == 0) {
+			$message = "(empty)";
+		}
+		if (strlen($subject) == 0) {
+			$subject = "(empty)";
+		}
 		$data = array(
 			'name'      =>      $first->getField('from')['name'],
 			'email'     =>      $first->getField('from')['email'],
 			'subject'   =>      $subject,
-			'message'   =>      $first->getField('message'),
+			'message'   =>      $message,
 			'topicId'   =>      $config->get('f-help-topic'),
 		);
 		$ticket = Ticket::create($data, $errors, 'api', false, false);
