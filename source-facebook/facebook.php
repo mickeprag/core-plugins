@@ -112,6 +112,7 @@ class FacebookPlugin extends Plugin {
 			'topicId'   =>      $config->get('f-help-topic'),
 			'source'    =>      'Facebook'
 		);
+		$errors = array();
 		$ticket = Ticket::create($data, $errors, 'api', false, false);
 		if (!$ticket) {
 			return;
