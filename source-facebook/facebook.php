@@ -46,7 +46,7 @@ class FacebookPlugin extends Plugin {
 		if (!$m) {
 			return;
 		}
-		$data = array('message' => (string)$entry->getBody());
+		$data = array('message' => (string)$entry->getBody()->convertTo('text'));
 		$response = $this->fb()->post(sprintf('/%s/messages', $m->facebook_id), $data);
 		$graphObject = $response->getGraphObject();
 		$m = FacebookThreadModel::create();
