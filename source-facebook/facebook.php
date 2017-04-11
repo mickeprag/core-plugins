@@ -42,16 +42,16 @@ class FacebookPlugin extends Plugin {
 			// This entry was fetch _from_ Facebook. Do not post it back again
 			return;
 		}
-		$m = FacebookConversationModel::lookup(array('ticket_id' => $entry->getTicketId()));
+		$m = FacebookConversationModel::lookup(array('ticket_id' => $entry->getThread()->getObjectId()));
 		if (!$m) {
 			return;
 		}
 		$data = array('message' => (string)$entry->getBody()->convertTo('text'));
 		$response = $this->fb()->post(sprintf('/%s/messages', $m->facebook_id), $data);
 		$graphObject = $response->getGraphObject();
-		$m = FacebookThreadModel::create();
+		$m = new FacebookThreadModel();
 		$m->facebook_id = $graphObject->getField('id');
-		$m->ticket_thread_id = $entry->id;
+		$m->ticket_thread_id = $entry->getId();
 		$m->save();
 	}
 
@@ -119,17 +119,19 @@ class FacebookPlugin extends Plugin {
 		}
 		$thread = $ticket->getThread();
 		// Add thread id to facebook table
-		foreach($thread->getMessages() as $threadEntry) {
-			$m = FacebookThreadModel::create();
-			$m->facebook_id = $first->getField('id');
-			$m->ticket_thread_id = $threadEntry['id'];
-			$m->save();
+		if (!FacebookThreadModel::lookup($first->getField('id'))) {
+			foreach($thread->getMessages() as $threadEntry) {
+				$m = new FacebookThreadModel();
+				$m->facebook_id = $first->getField('id');
+				$m->ticket_thread_id = $threadEntry->getId();
+				$m->save();
+			}
 		}
 
 		$this->updateResponses($ticket, $responses);
-		$m = FacebookConversationModel::create();
+		$m = new FacebookConversationModel();
 		$m->facebook_id = $mid;
-		$m->ticket_id = $ticket->id;
+		$m->ticket_id = $ticket->getId();
 		$m->last_updated = $updatedTime->format('Y-m-d H:i:s');
 		$m->save();
 	}
@@ -159,9 +161,9 @@ class FacebookPlugin extends Plugin {
 				}
 				$response = $ticket->postMessage($data);
 			}
-			$m = FacebookThreadModel::create();
+			$m = new FacebookThreadModel();
 			$m->facebook_id = $msgId;
-			$m->ticket_thread_id = $response->id;
+			$m->ticket_thread_id = $response->getId();
 			$m->save();
 		}
 		return true;
